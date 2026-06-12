@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>あなたにぴったりのストラップ診断 | my hobby</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Bebas+Neue&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #FFFFFF; --text: #111111; --accent: #E8003A;
+    --accent2: #007A63; --gray: #666; --card-bg: #F4F4F4; --border: #E0E0E0;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Noto Sans JP', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .app { width: 100%; max-width: 430px; min-height: 100vh; display: flex; flex-direction: column; }
+
+  .top-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px 40px; text-align: center; }
+  .brand-tag { font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 0.25em; color: var(--accent); margin-bottom: 20px; }
+  .strap-deco { width: 80px; height: 120px; margin: 0 auto 32px; }
+  .strap-deco svg { width: 100%; height: 100%; }
+  .top-title { font-size: 26px; font-weight: 900; line-height: 1.35; margin-bottom: 12px; }
+  .top-title span { color: var(--accent); }
+  .top-sub { font-size: 13px; color: var(--gray); margin-bottom: 40px; line-height: 1.8; }
+  .start-btn { background: var(--accent); color: white; border: none; padding: 18px 48px; font-size: 17px; font-weight: 700; font-family: 'Noto Sans JP', sans-serif; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 20px rgba(232,0,58,0.35); transition: transform 0.1s; }
+  .start-btn:active { transform: scale(0.97); }
+  .q-count-info { margin-top: 16px; font-size: 12px; color: var(--gray); }
+
+  .quiz-screen { flex: 1; display: none; flex-direction: column; padding: 24px 20px 40px; }
+  .quiz-screen.active { display: flex; }
+  .progress-wrap { margin-bottom: 28px; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--gray); margin-bottom: 8px; font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.1em; }
+  .progress-bar { height: 3px; background: #E0E0E0; border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #FF6B35); border-radius: 3px; transition: width 0.4s cubic-bezier(.4,0,.2,1); }
+  .q-number { font-family: 'Bebas Neue', sans-serif; font-size: 52px; line-height: 1; color: #E8E8E8; margin-bottom: -8px; }
+  .q-text { font-size: 20px; font-weight: 700; line-height: 1.45; margin-bottom: 28px; min-height: 60px; }
+  .options { display: flex; flex-direction: column; gap: 12px; }
+  .opt-btn { background: var(--card-bg); color: var(--text); border: 1.5px solid var(--border); border-radius: 16px; padding: 16px 18px; font-size: 15px; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; text-align: left; line-height: 1.5; transition: border-color 0.15s, background 0.15s; display: flex; align-items: center; gap: 12px; }
+  .opt-btn:hover { border-color: var(--accent); background: #FFF0F3; }
+  .opt-btn.selected { border-color: var(--accent); background: #FFF0F3; }
+  .opt-icon { font-size: 22px; flex-shrink: 0; }
+
+  .loading-screen { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
+  .loading-screen.active { display: flex; }
+  .loading-text { font-size: 15px; color: var(--gray); }
+  .dot-loader { display: flex; gap: 8px; }
+  .dot-loader span { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); animation: bounce 0.9s infinite; }
+  .dot-loader span:nth-child(2) { animation-delay: 0.15s; background: #FF6B35; }
+  .dot-loader span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes bounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+
+  .result-screen { flex: 1; display: none; flex-direction: column; padding: 28px 20px 48px; animation: fadeIn 0.5s ease; }
+  .result-screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .result-eyebrow { font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 0.25em; color: var(--accent); margin-bottom: 6px; }
+  .result-type { font-size: 24px; font-weight: 900; line-height: 1.35; margin-bottom: 20px; }
+  .result-type em { font-style: normal; color: var(--accent); }
+  .result-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 20px; margin-bottom: 20px; display: block; background: #f0f0f0; }
+  .result-card { background: var(--card-bg); border-radius: 20px; padding: 20px; margin-bottom: 16px; border: 1px solid var(--border); }
+  .result-name { font-size: 20px; font-weight: 900; margin-bottom: 8px; color: var(--accent); }
+  .result-desc { font-size: 14px; line-height: 1.8; color: #444; }
+  .result-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .tag { background: #F0F0F0; border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; font-size: 12px; color: var(--accent2); }
+  .result-message { font-size: 13px; line-height: 1.9; color: #555; margin-bottom: 28px; }
+  .result-message strong { color: #111; }
+  .cta-btn { background: var(--accent); color: white; border: none; padding: 18px; font-size: 15px; font-weight: 700; font-family: 'Noto Sans JP', sans-serif; border-radius: 50px; cursor: pointer; width: 100%; box-shadow: 0 4px 20px rgba(232,0,58,0.3); margin-bottom: 12px; transition: transform 0.1s; }
+  .cta-btn:active { transform: scale(0.98); }
+  .retry-btn { background: transparent; color: var(--gray); border: 1px solid var(--border); padding: 14px; font-size: 14px; font-family: 'Noto Sans JP', sans-serif; border-radius: 50px; cursor: pointer; width: 100%; }
+  .retry-btn:hover { border-color: #999; color: #111; }
+  .footer-brand { text-align: center; font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: 0.2em; color: #bbb; margin-top: 36px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top-screen" id="topScreen">
+    <div class="brand-tag">MY HOBBY × STRAP SHINDAN</div>
+    <div class="strap-deco">
+      <svg viewBox="0 0 80 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="30" y="0" width="20" height="80" rx="10" fill="#ddd"/>
+        <rect x="33" y="5" width="14" height="70" rx="7" fill="#E8003A" opacity="0.6"/>
+        <rect x="35" y="15" width="10" height="8" rx="2" fill="#007A63"/>
+        <rect x="35" y="30" width="10" height="8" rx="2" fill="#E8003A"/>
+        <rect x="35" y="45" width="10" height="8" rx="2" fill="#FF6B35"/>
+        <rect x="28" y="78" width="24" height="14" rx="4" fill="#ccc"/>
+        <circle cx="40" cy="100" r="12" fill="#f4f4f4" stroke="#ddd" stroke-width="2"/>
+        <circle cx="40" cy="100" r="6" fill="#E8003A" opacity="0.5"/>
+      </svg>
+    </div>
+    <h1 class="top-title">あなたにぴったりの<br><span>ストラップ</span>は？</h1>
+    <p class="top-sub">4つの質問に答えるだけで<br>あなたのライフスタイルに合った<br>my hobbyのストラップがわかります。</p>
+    <button class="start-btn" onclick="startQuiz()">診断スタート →</button>
+    <p class="q-count-info">全4問・約1分</p>
+  </div>
+
+  <div class="quiz-screen" id="quizScreen">
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="progressText">Q1 / 4</span>
+        <span id="progressPct">25%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:25%"></div></div>
+    </div>
+    <div class="q-number" id="qNumber">01</div>
+    <div class="q-text" id="qText"></div>
+    <div class="options" id="options"></div>
+  </div>
+
+  <div class="loading-screen" id="loadingScreen">
+    <div class="dot-loader"><span></span><span></span><span></span></div>
+    <p class="loading-text">診断中...</p>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <div class="result-eyebrow">RESULT</div>
+    <div class="result-type" id="resultType"></div>
+    <img class="result-img" id="resultImg" src="" alt="商品写真"/>
+    <div class="result-card">
+      <div class="result-name" id="resultName"></div>
+      <div class="result-desc" id="resultDesc"></div>
+      <div class="result-tags" id="resultTags"></div>
+    </div>
+    <p class="result-message" id="resultMessage"></p>
+    <button class="cta-btn" onclick="goToShop()">🛍️ my hobby HPをチェック</button>
+    <button class="retry-btn" onclick="retryQuiz()">もう一度診断する</button>
+    <div class="footer-brand">MY HOBBY — PARACORD STRAP</div>
+  </div>
+</div>
+
+<script>
+const productImages = {
+  black_line: "https://drive.google.com/thumbnail?id=1qtrouFAD7FL658NHzCjMLNjiZzDudZlL&sz=w800",
+  monotone:   "https://drive.google.com/thumbnail?id=1pQ79wICZc3_G89RRo8wPTNBbfLHN-Hgb&sz=w800",
+  leopard:    "https://drive.google.com/thumbnail?id=1_YmeKQ-x2dz9JNHbuMaueZay4nANEaXY&sz=w800",
+  outdoor:    "https://drive.google.com/thumbnail?id=1dVq-Yzkhq22YPJ-_xwn7cBzymSVb4kJT&sz=w800",
+  hand:       "https://drive.google.com/thumbnail?id=1aK_AYu2QzbqICJtcl_tDBG0KGf76cs25&sz=w800"
+};
+
+const questions = [
+  {
+    text: "休日の過ごし方は？",
+    options: [
+      { icon: "🏕️", text: "アウトドア・キャンプ・ハイキング", val: "outdoor" },
+      { icon: "🛍️", text: "カフェ巡り・ショッピング・おでかけ", val: "city" },
+      { icon: "🏠", text: "おうち時間・のんびり系", val: "home" },
+      { icon: "✈️", text: "旅行・フェス・イベント", val: "travel" }
+    ]
+  },
+  {
+    text: "スマホケースや持ち物のスタイルは？",
+    options: [
+      { icon: "🖤", text: "シンプル・モノトーン・落ち着いた感じ", val: "mono" },
+      { icon: "🐆", text: "個性的・アニマル柄・人と違うのが好き", val: "unique" },
+      { icon: "💪", text: "無骨・アウトドア・存在感重視", val: "wild" },
+      { icon: "✨", text: "ブラックベースにカラーをちょい足し", val: "black_accent" }
+    ]
+  },
+  {
+    text: "ストラップに求めるものは？",
+    options: [
+      { icon: "🎽", text: "肩にかけて使いたい", val: "shoulder" },
+      { icon: "🤲", text: "手首に巻いてコンパクトに使いたい", val: "hand" },
+      { icon: "🔥", text: "とにかく存在感・インパクトがほしい", val: "impact" },
+      { icon: "🕶️", text: "落ち着いたシックな雰囲気がいい", val: "chic" }
+    ]
+  },
+  {
+    text: "好きな雰囲気・世界観は？",
+    options: [
+      { icon: "🌲", text: "ワイルド・アドベンチャー・自然", val: "nature" },
+      { icon: "🖤", text: "クール・スタイリッシュ・都会的", val: "cool" },
+      { icon: "🐆", text: "個性派・目立ちたい・唯一無二", val: "bold" },
+      { icon: "🌿", text: "シンプル・ミニマル・飽きのこないデザイン", val: "minimal" }
+    ]
+  }
+];
+
+const results = [
+  {
+    id: "black_line",
+    type: "BLACK Lineタイプ",
+    name: "BLACK Line",
+    desc: "ブラックベースにカラーのワンポイントが映える、my hobbyの定番ライン。シンプルだけど個性がある、バランスの取れた一本。",
+    tags: ["#BLACKLine", "#ワンポイント", "#定番"],
+    message: "コーデを選ばない<strong>ブラックベース</strong>に、さりげないカラーアクセントが主張しすぎずおしゃれ。",
+    keys: ["black_accent", "shoulder", "cool", "chic"]
+  },
+  {
+    id: "monotone",
+    type: "MONOTONEタイプ",
+    name: "MONOTONEシリーズ",
+    desc: "All Black・Black×Black柄・Black×Silverの3種。落ち着いたトーンで統一されたシックな雰囲気が魅力。",
+    tags: ["#MONOTONE", "#シック", "#落ち着き"],
+    message: "派手すぎず、でも<strong>存在感はしっかりある</strong>。どんなスタイルにも合わせやすいモノトーンの美学。",
+    keys: ["mono", "chic", "minimal", "cool"]
+  },
+  {
+    id: "leopard",
+    type: "ヒョウ柄タイプ",
+    name: "ヒョウ柄ストラップ",
+    desc: "ブラックのパラコードとヒョウ柄テープを組み合わせた、my hobbyならではの個性派モデル。",
+    tags: ["#ヒョウ柄", "#個性派", "#唯一無二"],
+    message: "「人と同じじゃつまらない」そんなあなたにぴったり。<strong>他の誰とも被らない</strong>ストラップで個性を発揮。",
+    keys: ["unique", "bold", "city", "travel"]
+  },
+  {
+    id: "outdoor",
+    type: "極太アウトドアタイプ",
+    name: "極太アウトドアストラップ",
+    desc: "太くて力強いパラコードを使ったアウトドア向けモデル。シンプルな見た目ながら圧倒的な存在感。",
+    tags: ["#極太", "#アウトドア", "#存在感"],
+    message: "フィールドでも街でも<strong>圧倒的な存在感</strong>を放つ一本。アクティブなライフスタイルに最適。",
+    keys: ["outdoor", "wild", "impact", "nature"]
+  },
+  {
+    id: "hand",
+    type: "ハンドストラップタイプ",
+    name: "ハンドストラップ",
+    desc: "手首に巻いてコンパクトに使えるハンドタイプ。肩にかけたくない人や、ちょっとした外出に最適。",
+    tags: ["#ハンドストラップ", "#手首", "#コンパクト"],
+    message: "「ショルダーは荷物が多い時だけでいい」そんなあなたに。<strong>手首にさっと巻くだけ</strong>でおしゃれが完成。",
+    keys: ["hand", "home", "minimal", "city"]
+  }
+];
+
+let currentQ = 0, answers = [];
+
+function startQuiz() {
+  document.getElementById('topScreen').style.display = 'none';
+  document.getElementById('quizScreen').classList.add('active');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  const n = currentQ + 1;
+  document.getElementById('qNumber').textContent = String(n).padStart(2, '0');
+  document.getElementById('qText').textContent = q.text;
+  document.getElementById('progressText').textContent = 'Q' + n + ' / 4';
+  const pct = n * 25;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  q.options.forEach(o => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerHTML = '<span class="opt-icon">' + o.icon + '</span><span>' + o.text + '</span>';
+    btn.onclick = () => selectOption(o.val, btn);
+    opts.appendChild(btn);
+  });
+}
+
+function selectOption(val, btn) {
+  document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  answers.push(val);
+  setTimeout(() => {
+    if (currentQ < questions.length - 1) { currentQ++; renderQuestion(); }
+    else showLoading();
+  }, 300);
+}
+
+function showLoading() {
+  document.getElementById('quizScreen').classList.remove('active');
+  document.getElementById('loadingScreen').classList.add('active');
+  setTimeout(showResult, 1800);
+}
+
+function showResult() {
+  const r = calcResult();
+  document.getElementById('resultType').innerHTML = 'あなたは<br><em>' + r.type + '</em>';
+  document.getElementById('resultImg').src = productImages[r.id];
+  document.getElementById('resultName').textContent = r.name;
+  document.getElementById('resultDesc').textContent = r.desc;
+  document.getElementById('resultMessage').innerHTML = r.message;
+  const tagsEl = document.getElementById('resultTags');
+  tagsEl.innerHTML = '';
+  r.tags.forEach(t => {
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.textContent = t;
+    tagsEl.appendChild(tag);
+  });
+  document.getElementById('loadingScreen').classList.remove('active');
+  document.getElementById('resultScreen').classList.add('active');
+}
+
+function calcResult() {
+  const score = {};
+  results.forEach((r, i) => { score[i] = 0; });
+  answers.forEach(ans => { results.forEach((r, i) => { if (r.keys.includes(ans)) score[i]++; }); });
+  let maxScore = -1, candidates = [];
+  Object.entries(score).forEach(([i, s]) => {
+    if (s > maxScore) { maxScore = s; candidates = [i]; }
+    else if (s === maxScore) candidates.push(i);
+  });
+  return results[candidates[Math.floor(Math.random() * candidates.length)]];
+}
+
+function goToShop() {
+  window.open('https://myhobby.base.shop/?utm_source=ig&utm_medium=social&utm_content=link_in_bio', '_blank');
+}
+
+function retryQuiz() {
+  currentQ = 0; answers = [];
+  document.getElementById('resultScreen').classList.remove('active');
+  document.getElementById('topScreen').style.display = 'flex';
+}
+</script>
+</body>
+</html>
